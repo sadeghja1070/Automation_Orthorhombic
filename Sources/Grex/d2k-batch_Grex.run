@@ -1,0 +1,90 @@
+
+#!/bin/bash
+#PBS -l procs=64,pmem=2gb,walltime=160:00:00
+#PBS -M -
+#PBS -m bea
+#PBS -r n
+#PBS -N Sadegh-Shokatian
+
+module purge
+module load intel/12.1.5.339
+module load intel/ompi/1.6.5
+
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#                             DEMON
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+cd $PBS_O_WORKDIR
+
+sourcedir=`pwd`
+infile='TBA'
+
+echo " my input file: " 
+ls -la $sourcedir/$infile
+
+outfile=${infile%.*}.out
+job=${infile%.*}
+#restartfile=$job.rst
+
+echo "deMon Calculation: "$infile $restartfile
+
+#
+# GAS PBS_JOBID is unique per job so it is safe to put them there
+#
+
+scratch=/global/scratch/sadeghsh/scratch/$PBS_JOBID 
+rundir=$scratch
+
+mkdir -p $scratch
+cd $scratch
+
+echo "I am in scratch: "
+pwd
+
+cp /home/sadeghsh/BASIS/{AUXIS,BASIS,ECPS,MCPS} $rundir
+
+
+cp $sourcedir/$restartfile ${rundir}/deMon.rst
+
+cp $sourcedir/$infile $rundir/deMon.inp
+cp $sourcedir/$infile $sourcedir/$job.inp.$PBS_JOBID
+
+ls -la ./deMon.inp
+
+#
+# GAS for MPI application use mpiexes; for serial drop it
+#
+
+echo "Staring deMon at " `date`
+
+mpiexec /home/urquhart/deMon2k-new/deMon/4.3.4/object.mpi/deMon.4.3.4.mpi > $sourcedir/$outfile
+
+#
+# GAS there seem to be more file spossible for restarts?
+# like deMon.mem and deMon.new and deMon.trj?
+#
+echo "Copying files:"
+
+#mv deMon.out $sourcedir/$outfile
+mv deMon.xry $sourcedir/$job.xry
+#mv deMon.mem $sourcedir/$job.rst
+mv deMon.new $sourcedir/$job.inp  
+#mv deMon.mol $sourcedir/$job.mol 
+
+rm -f fort.*
+
+cd $sourcedir
+source xray2k.run $job.xry xray.inp
+
+echo "Done"
+
+cho "Done"
+
+
+
+
+
+
+
+

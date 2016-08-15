@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# xray2k.run <filename.TXAS> <spectra instruction file>
+#
+# Adapted from LGMP files by SGU, 22 Sept 2013
+#
+#
+module load intel intel/xe_2013.3
+#
+#
+sourcedir=$(pwd)
+infile=${1}
+spectrainstructions=${2}
+JOB=${1%.*}
+#
+#
+echo "X-ray deMon spectra conversion: "$infile" "$spectrainstructions
+#
+#
+scratchpath="/home/sas682/XasScratch"
+rundir=$scratchpath"/calc"
+mkdir -p ${rundir}
+cd ${rundir}
+#
+# Run job
+#
+cp $sourcedir/$spectrainstructions $rundir/
+#cp $sourcedir/$JOB.xry $rundir/deMon.xry
+
+cp $sourcedir/$JOB.xry $rundir/fort.1
+
+/home/sas682/xray/xray2k.x < $spectrainstructions
+#< $sourcedir/$spectrainstructions
+#
+#
+mv $rundir"/XrayT001.out" $sourcedir/$JOB.xas
+
+
+cd $sourcedir
+
